@@ -13,15 +13,16 @@ interface Props {
   naam: string;
   planNaam: string;
   spoed: boolean;
+  bedragFormatted: string;
 }
 
-export function CustomerConfirmation({ naam, planNaam, spoed }: Props) {
+export function CustomerConfirmation({ naam, planNaam, spoed, bedragFormatted }: Props) {
   const eersteNaam = naam.trim().split(/\s+/)[0] || naam;
 
   return (
     <Html>
       <Head />
-      <Preview>Dank je. Binnen 48 uur ontvang je je stijlrapport.</Preview>
+      <Preview>Je aanvraag is binnen. Stuur ons een DM om verder te gaan.</Preview>
       <Body style={{ backgroundColor: "#F4F0E6", fontFamily: "Georgia, serif" }}>
         <Container
           style={{
@@ -49,15 +50,15 @@ export function CustomerConfirmation({ naam, planNaam, spoed }: Props) {
           </Heading>
 
           <Text style={{ fontSize: "16px", lineHeight: "26px", color: "#1B2A41" }}>
-            Vanaf hier is het uit handen. We hebben je stijlprofiel ontvangen
-            voor <strong>{planNaam}</strong>
-            {spoed ? " met spoedlevering" : ""}, en gaan direct voor je aan de
-            slag.
+            We hebben je aanvraag ontvangen voor <strong>{planNaam}</strong>
+            {spoed ? " met spoedlevering" : ""} ({bedragFormatted}).
           </Text>
 
           <Text style={{ fontSize: "16px", lineHeight: "26px", color: "#1B2A41" }}>
-            Binnen 48 uur ontvang je je persoonlijke stijlrapport in je inbox,
-            compleet met outfits en directe shoplinks.
+            Stuur ons ook nog even een DM op <strong>Instagram</strong> of{" "}
+            <strong>TikTok</strong> met je naam erbij, zodat we je aanvraag
+            kunnen koppelen. Wij sturen je vervolgens een Tikkie-betaalverzoek
+            — zodra dat betaald is, gaan we voor je aan de slag.
           </Text>
 
           <Hr style={{ borderColor: "#DED4C0", margin: "32px 0" }} />

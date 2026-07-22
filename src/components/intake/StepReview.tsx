@@ -23,7 +23,7 @@ export function StepReview({ data }: Props) {
     <div>
       <h2 className="font-serif text-3xl text-navy">Overzicht</h2>
       <p className="mt-2 text-sm text-soft-navy">
-        Controleer je gegevens. Na betaling gaan we direct aan de slag.
+        Controleer je gegevens. Na het versturen nemen we contact met je op om de betaling te regelen.
       </p>
 
       <div className="mt-8 divide-y divide-line border-y border-line">
@@ -73,9 +73,17 @@ export function StepReview({ data }: Props) {
       </div>
 
       <div className="mt-6 flex items-center justify-between">
-        <span className="text-sm text-soft-navy">Te betalen</span>
+        <span className="text-sm text-soft-navy">Totaalbedrag</span>
         <span className="font-serif text-4xl text-navy">{formatEuro(bedragCent)}</span>
       </div>
+
+      <p className="mt-6 border border-line bg-offwhite p-5 text-sm leading-relaxed text-soft-navy">
+        Na het versturen krijg je een bevestiging per e-mail. Stuur ons ook een DM op{" "}
+        <strong className="text-navy">Instagram</strong> of{" "}
+        <strong className="text-navy">TikTok</strong> met daarin duidelijk je naam, zodat we je
+        aanvraag kunnen koppelen. Wij sturen je vervolgens een Tikkie — zodra die betaald is, gaan
+        we voor je aan de slag.
+      </p>
     </div>
   );
 }

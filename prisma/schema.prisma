@@ -22,12 +22,9 @@ generator client {
 model Intake {
   id String @id @default(cuid())
 
-  // Status & betaling
-  status           String   @default("PENDING") // PENDING | PAID
-  stripeSessionId  String?  @unique
-  stripePaymentId  String?
-  createdAt        DateTime @default(now())
-  paidAt           DateTime?
+  // Status
+  status    String   @default("ONTVANGEN") // ONTVANGEN | BETAALD
+  createdAt DateTime @default(now())
 
   // Pakket
   plan       String // GELEGENHEID | VINTED_JACHT | CAPSULE

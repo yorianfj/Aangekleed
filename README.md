@@ -2,17 +2,17 @@
 
 > Zie je outfit vóór je hem koopt.
 
-Digitale stijlservice voor mannen: klanten vullen een stijlprofiel in, betalen via
-Stripe Checkout, en ontvangen — na een handmatig samengesteld rapport — hun
-outfits per e-mail. Deze codebase bevat de website, de intake-wizard, de
-betaalflow en de transactionele e-mails.
+Digitale stijlservice voor mannen: klanten vullen een stijlprofiel in en
+versturen hun aanvraag. Betaling verloopt handmatig via Tikkie, na contact via
+DM (Instagram/TikTok). Na een handmatig samengesteld rapport ontvangen ze hun
+outfits per e-mail. Deze codebase bevat de website, de intake-wizard en de
+transactionele e-mails.
 
 ## Stack
 
 - **Next.js 14** (App Router) + **TypeScript**
 - **Tailwind CSS** voor styling
 - **Prisma** als ORM — **SQLite** lokaal, **Postgres** in productie
-- **Stripe Checkout** voor betaling
 - **Resend** + **React Email** voor transactionele e-mail
 - **Zod** voor validatie van het intakeformulier
 
@@ -25,18 +25,17 @@ src/
   app/
     page.tsx                # Landingspagina
     intake/page.tsx          # Stijlprofiel-wizard
-    bedankt/page.tsx         # Bevestigingspagina na betaling
-    api/checkout/route.ts    # Maakt Stripe Checkout Session + slaat intake op (PENDING)
-    api/webhook/stripe/route.ts  # Verwerkt betaling, verstuurt e-mails
+    bedankt/page.tsx         # Bevestigingspagina na versturen
+    api/submit/route.ts      # Slaat de intake op en verstuurt e-mails
   components/
     marketing/                # Secties van de landingspagina
     intake/                   # Stappen van de wizard
     ui/                        # Herbruikbare form- en layout-componenten
   emails/                     # React Email-templates (klant + eigenaar)
   lib/
-    prisma.ts, stripe.ts, resend.ts   # Clients
-    pricing.ts                        # Pakketten en prijsberekening
-    validation.ts                     # Zod-schema's voor de wizard
+    prisma.ts, resend.ts      # Clients
+    pricing.ts                # Pakketten en prijsberekening
+    validation.ts             # Zod-schema's voor de wizard
 ```
 
 ## Lokaal draaien
@@ -70,37 +69,20 @@ Zie `.env.example` voor het volledige overzicht. Kort samengevat:
 | Variabele | Omschrijving |
 |---|---|
 | `DATABASE_URL` | `file:./dev.db` lokaal, een Postgres-connectiestring in productie |
-| `STRIPE_SECRET_KEY` | Geheime Stripe-sleutel (`sk_test_...` of `sk_live_...`) |
-| `STRIPE_WEBHOOK_SECRET` | Signing secret van je Stripe-webhookendpoint (`whsec_...`) |
 | `RESEND_API_KEY` | API-sleutel van Resend (`re_...`) |
 | `MAIL_FROM` | Afzenderadres, bijv. `AANGEKLEED <noreply@aangekleed.nl>` |
-| `OWNER_EMAIL` | Jouw eigen e-mailadres — ontvangt elke betaalde intake |
-| `NEXT_PUBLIC_SITE_URL` | Fallback voor de Stripe redirect-URL's, bijv. `http://localhost:3000` |
+| `OWNER_EMAIL` | Jouw eigen e-mailadres — ontvangt elke nieuwe aanvraag |
+| `NEXT_PUBLIC_SITE_URL` | Basis-URL van de site, bijv. `http://localhost:3000` |
 
-### Stripe instellen
+### Hoe de aanvraag- en betaalflow werkt
 
-1. Maak een gratis Stripe-account aan op [stripe.com](https://stripe.com) en
-   activeer testmodus.
-2. Kopieer de **Secret key** onder *Developers → API keys* naar
-   `STRIPE_SECRET_KEY`.
-3. Voor lokale webhooks: installeer de [Stripe CLI](https://stripe.com/docs/stripe-cli)
-   en draai:
-
-   ```bash
-   stripe listen --forward-to localhost:3000/api/webhook/stripe
-   ```
-
-   De CLI toont een `whsec_...` — zet die in `STRIPE_WEBHOOK_SECRET`.
-4. Voor productie: maak in het Stripe Dashboard onder *Developers → Webhooks*
-   een endpoint aan dat wijst naar `https://jouw-domein.nl/api/webhook/stripe`,
-   met event `checkout.session.completed`. Kopieer de bijbehorende signing
-   secret naar `STRIPE_WEBHOOK_SECRET` in je productie-omgeving.
-
-De betaalflow werkt als volgt: de klant doorloopt de intake-wizard, waarna
-`/api/checkout` de intake als `PENDING` opslaat en een Stripe Checkout Session
-aanmaakt. Pas als Stripe bevestigt dat er betaald is (via de webhook) wordt de
-intake op `PAID` gezet en gaan de e-mails eruit — zonder betaling landt er dus
-niets in je mailbox.
+De klant doorloopt de intake-wizard en verstuurt die via `/api/submit`. Dit
+slaat de aanvraag direct op in de database (status `ONTVANGEN`) en stuurt
+twee e-mails: één bevestiging naar de klant (met het verzoek een DM te sturen
+op Instagram/TikTok met hun naam), en één met de volledige aanvraag naar
+`OWNER_EMAIL`. Betaling verloopt buiten de website om: na het DM-contact stuur
+je zelf een Tikkie-betaalverzoek, en zodra dat betaald is start je met het
+samenstellen van het rapport.
 
 ### Resend instellen
 
@@ -108,7 +90,7 @@ niets in je mailbox.
 2. Verifieer een verzenddomein (of gebruik voor testen het gratis
    `onboarding@resend.dev`-adres als `MAIL_FROM`).
 3. Kopieer je API-sleutel naar `RESEND_API_KEY`.
-4. Zet `OWNER_EMAIL` op het adres waar je zelf de volledige intake wilt
+4. Zet `OWNER_EMAIL` op het adres waar je zelf elke nieuwe aanvraag wilt
    ontvangen.
 
 ## Database: SQLite lokaal, Postgres in productie
@@ -146,10 +128,7 @@ Voor productie:
    `prisma/schema.prisma` op `provider = "postgresql"` staat (zie hierboven) —
    Vercel's serverless functies hebben geen persistent bestandssysteem, dus
    SQLite werkt daar niet.
-4. Zet in het Stripe Dashboard een webhook-endpoint op
-   `https://jouw-domein.vercel.app/api/webhook/stripe` en vul de signing
-   secret in als `STRIPE_WEBHOOK_SECRET`.
-5. Deploy. Vercel draait automatisch `next build`, wat via `postinstall` ook
+4. Deploy. Vercel draait automatisch `next build`, wat via `postinstall` ook
    `prisma generate` uitvoert.
 
 ## Scripts

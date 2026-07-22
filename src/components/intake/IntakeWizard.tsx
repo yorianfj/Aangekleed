@@ -73,7 +73,7 @@ export function IntakeWizard() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const res = await fetch("/api/checkout", {
+      const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -84,8 +84,8 @@ export function IntakeWizard() {
         throw new Error(body.error ?? "Er ging iets mis. Probeer het opnieuw.");
       }
 
-      const { url } = await res.json();
-      window.location.href = url;
+      const result = await res.json();
+      window.location.href = `/bedankt?naam=${encodeURIComponent(result.naam ?? "")}`;
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Er ging iets mis. Probeer het opnieuw.");
       setSubmitting(false);
@@ -126,7 +126,7 @@ export function IntakeWizard() {
           <Button onClick={goNext}>Volgende</Button>
         ) : (
           <Button onClick={submit} disabled={submitting}>
-            {submitting ? "Bezig..." : "Betaal & verstuur"}
+            {submitting ? "Bezig..." : "Verstuur je aanvraag"}
           </Button>
         )}
       </div>

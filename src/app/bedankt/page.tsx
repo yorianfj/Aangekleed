@@ -1,29 +1,16 @@
 import Link from "next/link";
 import { Logo } from "@/components/marketing/Logo";
-import { stripe } from "@/lib/stripe";
 
 export const metadata = {
   title: "Bedankt — AANGEKLEED.",
 };
 
-async function getKlantnaam(sessionId?: string): Promise<string | null> {
-  if (!sessionId) return null;
-  try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    if (session.payment_status !== "paid") return null;
-    return session.customer_details?.name ?? null;
-  } catch {
-    return null;
-  }
-}
-
-export default async function BedanktPage({
+export default function BedanktPage({
   searchParams,
 }: {
-  searchParams: { session_id?: string };
+  searchParams: { naam?: string };
 }) {
-  const naam = await getKlantnaam(searchParams.session_id);
-  const eersteNaam = naam?.trim().split(/\s+/)[0];
+  const eersteNaam = searchParams.naam?.trim().split(/\s+/)[0];
 
   return (
     <div className="flex min-h-screen flex-col bg-ivory">
@@ -45,9 +32,11 @@ export default async function BedanktPage({
         </h1>
 
         <p className="mt-6 max-w-md text-[17px] leading-relaxed text-soft-navy">
-          Vanaf hier is het uit handen. Binnen 48 uur ontvang je je
-          persoonlijke stijlrapport per e-mail, compleet met outfits en
-          directe shoplinks.
+          Je aanvraag is binnen. Stuur ons ook nog even een DM op{" "}
+          <strong className="text-navy">Instagram</strong> of{" "}
+          <strong className="text-navy">TikTok</strong> met je naam erbij, zodat we je aanvraag
+          kunnen koppelen. Wij sturen je vervolgens een Tikkie-betaalverzoek — zodra dat betaald
+          is, gaan we voor je aan de slag.
         </p>
 
         <Link href="/" className="btn-primary mt-10">
