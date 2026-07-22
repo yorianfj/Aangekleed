@@ -1,0 +1,67 @@
+// AANGEKLEED — datamodel
+//
+// Provider-opmerking: SQLite ondersteunt geen native enums of arrays,
+// dus die velden zijn hier als String gemodelleerd (app-laag valideert
+// de toegestane waarden via zod, zie src/lib/validation.ts). Lijsten
+// (kleuren, merken) worden als JSON-string opgeslagen en in de app
+// ge(de)serialiseerd — dit houdt het schema identiek voor SQLite en Postgres.
+//
+// Lokaal:      provider = "sqlite"      DATABASE_URL="file:./dev.db"
+// Productie:   provider = "postgresql"  DATABASE_URL="postgresql://..."
+// Zie README.md voor hoe je omschakelt bij deploy.
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Intake {
+  id String @id @default(cuid())
+
+  // Status & betaling
+  status           String   @default("PENDING") // PENDING | PAID
+  stripeSessionId  String?  @unique
+  stripePaymentId  String?
+  createdAt        DateTime @default(now())
+  paidAt           DateTime?
+
+  // Pakket
+  plan       String // GELEGENHEID | VINTED_JACHT | CAPSULE
+  spoed      Boolean @default(false)
+  bedragCent Int
+
+  // Contact
+  naam  String
+  email String
+
+  // Gelegenheid
+  gelegenheidType String
+  gelegenheidDatum String?
+  budgetRange     String
+  dresscode       String?
+  locatie         String?
+
+  // Postuur
+  lengteCm    Int
+  bouw        String // slank | gemiddeld | breed | stevig | lang-dun
+  leeftijd    Int
+  shirtmaat   String
+  broekWaist  Int
+  broekLengte Int
+  schoenmaat  String
+
+  // Stijl
+  stijlrichting     String
+  fitVoorkeur       String
+  kleurvoorkeuren   String // JSON string array
+  favorieteMerken   String?
+  noGos             String?
+  tweedehands       Boolean @default(true)
+  opmerkingen       String?
+
+  @@map("intakes")
+}
